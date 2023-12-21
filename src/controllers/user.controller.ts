@@ -7,52 +7,63 @@ import { User } from "../models/userModel";
 
 dotenv.config();
 
-const { JWT_SECRET, REFRESH_TOKEN_SECRET } = process.env;
+const { JWT_SECRET, DB_NAME } = process.env;
 
-if (!JWT_SECRET || !REFRESH_TOKEN_SECRET) {
+if (!JWT_SECRET) {
   throw new Error("Token is not defined");
 }
 
+if (!DB_NAME) {
+  throw new Error("DB_NAME is not defined");
+}
+
+//Função para criar um novo usuário
 export const CreateUser = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const { name, dn, password } = req.body as User;
+    const { email, cpf, name, dn, telephone, password } = req.body as User;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = {
+      email,
+      cpf,
       name,
       dn,
+      telephone,
       password: hashedPassword,
     };
     const token = jwt.sign({ user }, JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    const refreshToken = jwt.sign({ user }, REFRESH_TOKEN_SECRET!, {
       expiresIn: "1d",
     });
 
-    dbClient
-      .db("teste")
-      .collection("users")
-      .insertOne({ ...user, token, refreshToken })
-      .then(() => {
-        res.json("Usuário criado com sucesso!");
-      })
-      .catch((error) => {
-        throw new Error(error);
-      });
-    //res.json({ ...user, token, refreshToken });
+    const userExists = await checkUser(email);
+
+    if (userExists.length > 0) {
+      res.send("Usuário já existe!");
+    } else {
+      dbClient
+        .db(DB_NAME)
+        .collection("users")
+        .insertOne({ ...user, token })
+        .then(() => {
+          res.json("Usuário criado com sucesso!");
+        })
+        .catch((error) => {
+          throw new Error(error);
+        });
+    }
   } catch (error) {
     console.error("Erro ao criar usuário", error);
     res.status(500).json({ error: "Erro interno ao criar usuário" });
   }
 };
 
+//Função para buscar todos os usuários
 export const AllUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const users = await dbClient
-      .db("teste")
+      .db(DB_NAME)
       .collection("users")
       .find()
       .toArray();
@@ -63,23 +74,14 @@ export const AllUser = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+//Função para realizar o login
 export const LonginUser = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const { name, password } = req.body;
-    const user = await dbClient
-      .db("teste")
-      .collection("users")
-      .aggregate([
-        {
-          $match: {
-            name: name,
-          },
-        },
-      ])
-      .toArray();
+    const { email, password } = req.body;
+    const user = await checkUser(email);
 
     if (!user) {
       res.status(401).json({ error: "Usuário não encontrado" });
@@ -96,4 +98,18 @@ export const LonginUser = async (
     console.error("Erro ao realizar login:", error);
     res.status(500).json({ error: "Erro interno do servidor" });
   }
+};
+
+export const checkUser = async (email: string) => {
+  return await dbClient
+    .db(DB_NAME)
+    .collection("users")
+    .aggregate([
+      {
+        $match: {
+          email: email,
+        },
+      },
+    ])
+    .toArray();
 };

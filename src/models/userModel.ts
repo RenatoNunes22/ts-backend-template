@@ -3,6 +3,6 @@ export interface User {
   cpf: string;
   name: string;
   dn: string;
-  telefone: string;
+  telephone: string;
   password: string;
 }

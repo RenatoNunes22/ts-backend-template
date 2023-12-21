@@ -9,6 +9,7 @@ if (!JWT_SECRET) {
   throw new Error("Token is not defined");
 }
 
+//Middleware para verificar se o token é válido
 export const checkToken = (req: any, res: any, next: any) => {
   const token = req.headers["authorization"];
 

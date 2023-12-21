@@ -9,9 +9,11 @@ import { checkToken } from "../middlewares/checkToken";
 
 const router = express.Router();
 
+//Rotas get
 router.get("/", testController);
 router.get("/users", checkToken, AllUser);
 
+//Rotas post
 router.post("/users", CreateUser);
 router.post("/login", LonginUser);
 
