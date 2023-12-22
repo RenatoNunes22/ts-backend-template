@@ -1,5 +1,7 @@
 # Projeto Backend Node.js
 
+Este repositório fornece um ponto de partida para projetos Node.js no backend, apresentando duas branches principais. Na branch main, encontra-se um template básico com estrutura organizada e configurações iniciais. Por outro lado, a branch auth estende esse template ao incluir um sistema básico de autenticação, sendo ideal para projetos que demandam funcionalidades de login e controle de acesso desde o início. Além disso você pode escolher entre as branches para começar com um projeto simples ou com autenticação integrada. Contribuições são bem recebidas, seja para relatar problemas, sugerir melhorias ou enviar pull requests. 
+
 Este é um projeto backend Node.js que utiliza Express e MongoDB. O projeto possui duas branches principais:
 
 - **main**: Contém o código base com uma rota de teste.
